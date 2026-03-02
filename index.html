@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Event Year Finder</title>
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background: #f4f6f8;
+  margin: 0;
+  padding: 20px;
+}
+.container {
+  max-width: 1000px;
+  margin: auto;
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+}
+h1 {
+  text-align: center;
+}
+input, button, select {
+  padding: 10px;
+  margin: 5px 0;
+  font-size: 16px;
+}
+button {
+  cursor: pointer;
+}
+.section-title {
+  margin-top: 25px;
+  font-weight: bold;
+}
+
+/* Timeline Styling */
+.timeline {
+  position: relative;
+  margin-top: 30px;
+  padding-left: 40px;
+}
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: 15px;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: #007bff;
+}
+.timeline-item {
+  position: relative;
+  margin-bottom: 20px;
+}
+.timeline-item::before {
+  content: '';
+  position: absolute;
+  left: -28px;
+  top: 5px;
+  width: 15px;
+  height: 15px;
+  background: #007bff;
+  border-radius: 50%;
+}
+.timeline-year {
+  font-weight: bold;
+  color: #007bff;
+}
+.timeline-event {
+  margin-left: 5px;
+}
+.highlight {
+  background-color: #e6f2ff;
+  padding: 5px;
+  border-radius: 5px;
+}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>Event Year Finder</h1>
+
+<h3>Add Event</h3>
+<select id="categorySelect">
+  <option value="europe">Europe</option>
+  <option value="india">India</option>
+  <option value="print">Print</option>
+</select>
+<br/>
+<input type="text" id="eventInput" placeholder="Enter event name" />
+<input type="number" id="yearInput" placeholder="Enter year (e.g., 1947)" />
+<button onclick="addEvent()">Add Event</button>
+
+<h3>Search</h3>
+<select id="searchCategory" onchange="displayTimeline()">
+  <option value="europe">Europe</option>
+  <option value="india">India</option>
+  <option value="print">Print</option>
+</select>
+<br/>
+<input type="text" id="searchEvent" placeholder="Search by event name" />
+<input type="number" id="searchYear" placeholder="Search by year" />
+<button onclick="searchEvents()">Search</button>
+<button onclick="displayTimeline()">Show Full Timeline</button>
+
+<div id="results"></div>
+<div id="timelineContainer"></div>
+</div>
+
+<script>
+let allEvents = JSON.parse(localStorage.getItem('allEvents')) || {
+  europe: [],
+  india: [],
+  print: []
+};
+
+function saveEvents() {
+  localStorage.setItem('allEvents', JSON.stringify(allEvents));
+}
+
+function addEvent() {
+  const category = document.getElementById('categorySelect').value;
+  const eventName = document.getElementById('eventInput').value.trim();
+  const year = parseInt(document.getElementById('yearInput').value);
+
+  if (!eventName || isNaN(year)) {
+    alert("Please enter both event name and year.");
+    return;
+  }
+
+  allEvents[category].push({ event: eventName, year: year });
+  saveEvents();
+
+  document.getElementById('eventInput').value = '';
+  document.getElementById('yearInput').value = '';
+
+  displayTimeline();
+}
+
+function searchEvents() {
+  const category = document.getElementById('searchCategory').value;
+  const searchEvent = document.getElementById('searchEvent').value.trim().toLowerCase();
+  const searchYear = parseInt(document.getElementById('searchYear').value);
+
+  const resultsDiv = document.getElementById('results');
+  resultsDiv.innerHTML = '';
+
+  let events = allEvents[category];
+
+  if (!searchEvent && isNaN(searchYear)) {
+    resultsDiv.innerHTML = '<p>Please enter an event name or year to search.</p>';
+    return;
+  }
+
+  let filtered = events;
+
+  if (searchEvent) {
+    filtered = filtered.filter(e => e.event.toLowerCase().includes(searchEvent));
+  }
+
+  if (!isNaN(searchYear)) {
+    filtered = filtered.filter(e => e.year === searchYear);
+  }
+
+  if (filtered.length === 0) {
+    resultsDiv.innerHTML = '<p>No exact matches found.</p>';
+  } else {
+    resultsDiv.innerHTML += '<div class="section-title">Exact Matches</div>';
+    filtered.forEach(e => {
+      resultsDiv.innerHTML += `<div class="highlight">${e.event} - ${e.year}</div>`;
+    });
+  }
+}
+
+function displayTimeline() {
+  const category = document.getElementById('searchCategory').value;
+  const timelineDiv = document.getElementById('timelineContainer');
+  timelineDiv.innerHTML = '';
+
+  let events = [...allEvents[category]];
+  if (events.length === 0) {
+    timelineDiv.innerHTML = '<p>No events added yet.</p>';
+    return;
+  }
+
+  events.sort((a, b) => a.year - b.year);
+
+  timelineDiv.innerHTML = '<div class="section-title">Full Timeline</div>';
+  timelineDiv.innerHTML += '<div class="timeline"></div>';
+
+  const timeline = timelineDiv.querySelector('.timeline');
+
+  events.forEach(e => {
+    const item = document.createElement('div');
+    item.className = 'timeline-item';
+    item.innerHTML = `<span class="timeline-year">${e.year}</span> - <span class="timeline-event">${e.event}</span>`;
+    timeline.appendChild(item);
+  });
+}
+
+// Auto-load timeline for selected category on page load
+window.onload = function() {
+  displayTimeline();
+};
+</script>
+</body>
+</html>
