@@ -1,209 +1,232 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Event Year Finder</title>
-<style>
-body {
-  font-family: Arial, sans-serif;
-  background: #f4f6f8;
-  margin: 0;
-  padding: 20px;
-}
-.container {
-  max-width: 1000px;
-  margin: auto;
-  background: white;
-  padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-}
-h1 {
-  text-align: center;
-}
-input, button, select {
-  padding: 10px;
-  margin: 5px 0;
-  font-size: 16px;
-}
-button {
-  cursor: pointer;
-}
-.section-title {
-  margin-top: 25px;
-  font-weight: bold;
-}
+  <meta charset="UTF-8">
+  <title>History Timeline</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-/* Timeline Styling */
-.timeline {
-  position: relative;
-  margin-top: 30px;
-  padding-left: 40px;
-}
-.timeline::before {
-  content: '';
-  position: absolute;
-  left: 15px;
-  top: 0;
-  bottom: 0;
-  width: 4px;
-  background: #007bff;
-}
-.timeline-item {
-  position: relative;
-  margin-bottom: 20px;
-}
-.timeline-item::before {
-  content: '';
-  position: absolute;
-  left: -28px;
-  top: 5px;
-  width: 15px;
-  height: 15px;
-  background: #007bff;
-  border-radius: 50%;
-}
-.timeline-year {
-  font-weight: bold;
-  color: #007bff;
-}
-.timeline-event {
-  margin-left: 5px;
-}
-.highlight {
-  background-color: #e6f2ff;
-  padding: 5px;
-  border-radius: 5px;
-}
-</style>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      background: #f4f6f9;
+    }
+
+    header {
+      background: #111827;
+      color: white;
+      padding: 20px;
+      text-align: center;
+      font-size: 22px;
+      font-weight: bold;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 30px auto;
+      padding: 20px;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .tab {
+      padding: 10px 20px;
+      background: #e5e7eb;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .tab.active {
+      background: #2563eb;
+      color: white;
+    }
+
+    .card {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+      margin-bottom: 20px;
+    }
+
+    input, button {
+      padding: 8px;
+      margin: 5px 0;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      background: #2563eb;
+      color: white;
+      cursor: pointer;
+      border: none;
+    }
+
+    button.delete {
+      background: #dc2626;
+    }
+
+    .timeline {
+      border-left: 4px solid #2563eb;
+      padding-left: 20px;
+      margin-top: 20px;
+    }
+
+    .event {
+      margin-bottom: 15px;
+      padding: 10px;
+      background: #f9fafb;
+      border-radius: 8px;
+      position: relative;
+    }
+
+    .event h4 {
+      margin: 0;
+    }
+
+    .year {
+      font-weight: bold;
+      color: #555;
+    }
+
+    .actions {
+      margin-top: 5px;
+    }
+  </style>
 </head>
+
 <body>
+
+<header>History Timeline</header>
+
 <div class="container">
-<h1>Event Year Finder</h1>
 
-<h3>Add Event</h3>
-<select id="categorySelect">
-  <option value="europe">Europe</option>
-  <option value="india">India</option>
-  <option value="print">Print</option>
-</select>
-<br/>
-<input type="text" id="eventInput" placeholder="Enter event name" />
-<input type="number" id="yearInput" placeholder="Enter year (e.g., 1947)" />
-<button onclick="addEvent()">Add Event</button>
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('europe')">Europe</div>
+    <div class="tab" onclick="switchTab('india')">India</div>
+    <div class="tab" onclick="switchTab('print')">Print</div>
+  </div>
 
-<h3>Search</h3>
-<select id="searchCategory" onchange="displayTimeline()">
-  <option value="europe">Europe</option>
-  <option value="india">India</option>
-  <option value="print">Print</option>
-</select>
-<br/>
-<input type="text" id="searchEvent" placeholder="Search by event name" />
-<input type="number" id="searchYear" placeholder="Search by year" />
-<button onclick="searchEvents()">Search</button>
-<button onclick="displayTimeline()">Show Full Timeline</button>
+  <div class="card">
+    <h3>Add Event</h3>
+    <input type="text" id="eventName" placeholder="Event Name"><br>
+    <input type="number" id="eventYear" placeholder="Year"><br>
+    <input type="color" id="eventColor" value="#2563eb"><br>
+    <button onclick="addEvent()">Add Event</button>
+  </div>
 
-<div id="results"></div>
-<div id="timelineContainer"></div>
+  <div class="card">
+    <h3>Timeline</h3>
+    <div id="timeline" class="timeline"></div>
+  </div>
+
 </div>
 
-<script>
-let allEvents = JSON.parse(localStorage.getItem('allEvents')) || {
-  europe: [],
-  india: [],
-  print: []
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc } 
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAUVXWDLRkPjzGR3dEFUwG60EX_2tzr96o",
+  authDomain: "event-timeline-6a6b5.firebaseapp.com",
+  projectId: "event-timeline-6a6b5",
+  storageBucket: "event-timeline-6a6b5.firebasestorage.app",
+  messagingSenderId: "253986913727",
+  appId: "1:253986913727:web:14a667c11c37b5c226f50a"
 };
 
-function saveEvents() {
-  localStorage.setItem('allEvents', JSON.stringify(allEvents));
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+let currentChapter = "europe";
+
+window.switchTab = function(chapter) {
+  currentChapter = chapter;
+  document.querySelectorAll(".tab").forEach(tab => tab.classList.remove("active"));
+  event.target.classList.add("active");
+  loadEvents();
 }
 
-function addEvent() {
-  const category = document.getElementById('categorySelect').value;
-  const eventName = document.getElementById('eventInput').value.trim();
-  const year = parseInt(document.getElementById('yearInput').value);
+window.addEvent = async function() {
+  const name = document.getElementById("eventName").value;
+  const year = document.getElementById("eventYear").value;
+  const color = document.getElementById("eventColor").value;
 
-  if (!eventName || isNaN(year)) {
-    alert("Please enter both event name and year.");
-    return;
-  }
+  if (!name || !year) return alert("Fill all fields");
 
-  allEvents[category].push({ event: eventName, year: year });
-  saveEvents();
+  await addDoc(collection(db, currentChapter), {
+    name: name,
+    year: Number(year),
+    color: color
+  });
 
-  document.getElementById('eventInput').value = '';
-  document.getElementById('yearInput').value = '';
+  document.getElementById("eventName").value = "";
+  document.getElementById("eventYear").value = "";
 
-  displayTimeline();
+  loadEvents();
 }
 
-function searchEvents() {
-  const category = document.getElementById('searchCategory').value;
-  const searchEvent = document.getElementById('searchEvent').value.trim().toLowerCase();
-  const searchYear = parseInt(document.getElementById('searchYear').value);
+async function loadEvents() {
+  const timeline = document.getElementById("timeline");
+  timeline.innerHTML = "";
 
-  const resultsDiv = document.getElementById('results');
-  resultsDiv.innerHTML = '';
+  const querySnapshot = await getDocs(collection(db, currentChapter));
 
-  let events = allEvents[category];
+  let events = [];
+  querySnapshot.forEach((docSnap) => {
+    events.push({ id: docSnap.id, ...docSnap.data() });
+  });
 
-  if (!searchEvent && isNaN(searchYear)) {
-    resultsDiv.innerHTML = '<p>Please enter an event name or year to search.</p>';
-    return;
-  }
+  events.sort((a,b) => a.year - b.year);
 
-  let filtered = events;
+  events.forEach(eventData => {
+    const div = document.createElement("div");
+    div.className = "event";
+    div.style.borderLeft = "6px solid " + eventData.color;
 
-  if (searchEvent) {
-    filtered = filtered.filter(e => e.event.toLowerCase().includes(searchEvent));
-  }
+    div.innerHTML = `
+      <h4>${eventData.name}</h4>
+      <div class="year">${eventData.year}</div>
+      <div class="actions">
+        <button onclick="editEvent('${eventData.id}')">Edit</button>
+        <button class="delete" onclick="deleteEvent('${eventData.id}')">Delete</button>
+      </div>
+    `;
 
-  if (!isNaN(searchYear)) {
-    filtered = filtered.filter(e => e.year === searchYear);
-  }
-
-  if (filtered.length === 0) {
-    resultsDiv.innerHTML = '<p>No exact matches found.</p>';
-  } else {
-    resultsDiv.innerHTML += '<div class="section-title">Exact Matches</div>';
-    filtered.forEach(e => {
-      resultsDiv.innerHTML += `<div class="highlight">${e.event} - ${e.year}</div>`;
-    });
-  }
-}
-
-function displayTimeline() {
-  const category = document.getElementById('searchCategory').value;
-  const timelineDiv = document.getElementById('timelineContainer');
-  timelineDiv.innerHTML = '';
-
-  let events = [...allEvents[category]];
-  if (events.length === 0) {
-    timelineDiv.innerHTML = '<p>No events added yet.</p>';
-    return;
-  }
-
-  events.sort((a, b) => a.year - b.year);
-
-  timelineDiv.innerHTML = '<div class="section-title">Full Timeline</div>';
-  timelineDiv.innerHTML += '<div class="timeline"></div>';
-
-  const timeline = timelineDiv.querySelector('.timeline');
-
-  events.forEach(e => {
-    const item = document.createElement('div');
-    item.className = 'timeline-item';
-    item.innerHTML = `<span class="timeline-year">${e.year}</span> - <span class="timeline-event">${e.event}</span>`;
-    timeline.appendChild(item);
+    timeline.appendChild(div);
   });
 }
 
-// Auto-load timeline for selected category on page load
-window.onload = function() {
-  displayTimeline();
-};
+window.deleteEvent = async function(id) {
+  await deleteDoc(doc(db, currentChapter, id));
+  loadEvents();
+}
+
+window.editEvent = async function(id) {
+  const newName = prompt("New Event Name:");
+  const newYear = prompt("New Year:");
+  const newColor = prompt("New Color (hex code like #ff0000):");
+
+  if (!newName || !newYear || !newColor) return;
+
+  await updateDoc(doc(db, currentChapter, id), {
+    name: newName,
+    year: Number(newYear),
+    color: newColor
+  });
+
+  loadEvents();
+}
+
+loadEvents();
 </script>
+
 </body>
 </html>
