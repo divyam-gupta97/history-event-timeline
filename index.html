@@ -1,160 +1,150 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8">
-<title>History Event Timeline</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <title>History Event Timeline</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      background: #f4f6f9;
+    }
 
-<style>
-body {
-  font-family: Arial, sans-serif;
-  margin: 0;
-  background: #f3f4f6;
-}
+    header {
+      background: #111;
+      color: white;
+      padding: 15px;
+      text-align: center;
+      font-size: 22px;
+    }
 
-header {
-  background: #111827;
-  color: white;
-  padding: 20px;
-  text-align: center;
-  font-size: 22px;
-  font-weight: bold;
-}
+    .container {
+      max-width: 1000px;
+      margin: auto;
+      padding: 20px;
+    }
 
-.container {
-  max-width: 1000px;
-  margin: 30px auto;
-  padding: 20px;
-}
+    select, input, textarea, button {
+      padding: 6px;
+      margin: 4px;
+      font-size: 13px;
+    }
 
-.tabs {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 20px;
-}
+    textarea {
+      width: 100%;
+      height: 80px;
+    }
 
-.tab {
-  padding: 10px 20px;
-  background: #e5e7eb;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: bold;
-}
+    .small-btn {
+      font-size: 12px;
+      padding: 4px 8px;
+      cursor: pointer;
+      border-radius: 4px;
+      border: none;
+      margin-left: 4px;
+    }
 
-.tab.active {
-  background: #2563eb;
-  color: white;
-}
+    .black-btn {
+      background: black;
+      color: white;
+    }
 
-.card {
-  background: white;
-  padding: 20px;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-  margin-bottom: 20px;
-}
+    .event-box {
+      background: white;
+      padding: 12px;
+      margin: 10px 0;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
 
-input, textarea, button {
-  padding: 8px;
-  margin: 5px 0;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-  width: 100%;
-}
+    .year {
+      font-weight: bold;
+      font-size: 18px;
+    }
 
-textarea {
-  resize: vertical;
-}
+    .details {
+      margin-top: 6px;
+      padding-left: 18px;
+    }
 
-button {
-  background: #2563eb;
-  color: white;
-  cursor: pointer;
-  border: none;
-}
+    .timeline {
+      border-left: 3px solid #444;
+      padding-left: 15px;
+      margin-top: 20px;
+    }
 
-button.delete {
-  background: #dc2626;
-}
+    .mode-toggle {
+      float: right;
+      font-size: 12px;
+      cursor: pointer;
+    }
 
-.timeline {
-  border-left: 4px solid #2563eb;
-  padding-left: 20px;
-  margin-top: 20px;
-}
+    .summary-box {
+      background: #fff;
+      padding: 10px;
+      margin-top: 10px;
+      border-radius: 6px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+    }
 
-.event {
-  margin-bottom: 15px;
-  padding: 12px;
-  background: #f9fafb;
-  border-radius: 8px;
-}
-
-.year {
-  font-weight: bold;
-  color: #555;
-}
-
-ul {
-  margin-top: 5px;
-}
-
-#summaryBox {
-  background: #eef2ff;
-  padding: 15px;
-  border-radius: 8px;
-  margin-top: 10px;
-}
-</style>
+  </style>
 </head>
-
 <body>
 
-<header>History Event Timeline</header>
+<header>
+  History Event Timeline
+  <span class="mode-toggle">
+    Mode:
+    <button class="small-btn" onclick="setMode('compact')">Compact</button>
+    <button class="small-btn" onclick="setMode('detailed')">Detailed</button>
+  </span>
+</header>
 
 <div class="container">
 
-<div class="tabs">
-  <div class="tab active" onclick="switchTab(event,'europe')">Europe</div>
-  <div class="tab" onclick="switchTab(event,'india')">India</div>
-  <div class="tab" onclick="switchTab(event,'print')">Print</div>
-</div>
+  <h3>Add Event</h3>
 
-<div class="card">
-<h3>Add Event</h3>
-<input type="text" id="eventName" placeholder="Event Name (required)">
-<input type="number" id="eventYear" placeholder="Year (required)">
-<input type="color" id="eventColor" value="#2563eb">
-<textarea id="eventDescription" placeholder="Detailed Description (Use - for bullet points)"></textarea>
-<input type="text" id="eventSource" placeholder="Source (optional)">
-<button onclick="addEvent()">Add Event</button>
-</div>
+  <select id="chapter">
+    <option value="india">India</option>
+    <option value="europe">Europe</option>
+    <option value="print">Print</option>
+  </select>
 
-<div class="card">
-<h3>AI Summary Generator</h3>
-<input type="number" id="fromYear" placeholder="From Year">
-<input type="number" id="toYear" placeholder="To Year">
-<button onclick="generateSummary()">Generate Summary</button>
-<div id="summaryBox"></div>
-</div>
+  <input type="number" id="year" placeholder="Year">
+  <input type="text" id="title" placeholder="Event Title">
 
-<div class="card">
-<h3>Timeline</h3>
-<div id="timeline" class="timeline"></div>
-</div>
+  <div id="detailsSection" style="display:none;">
+    <textarea id="details" placeholder="Enter bullet points (one per line)"></textarea>
+  </div>
+
+  <button onclick="addEvent()">Add Event</button>
+
+  <hr>
+
+  <h3>AI Summary (Year Range)</h3>
+
+  <input type="number" id="startYear" placeholder="Start Year">
+  <input type="number" id="endYear" placeholder="End Year">
+  <button onclick="generateSummary()">Generate Summary</button>
+
+  <div id="summary" class="summary-box"></div>
+
+  <hr>
+
+  <div class="timeline" id="timeline"></div>
 
 </div>
 
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc }
-from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyAUVXWDLRkPjzGR3dEFUwG60EX_2tzr96o",
+  apiKey: "YOUR_API_KEY",
   authDomain: "event-timeline-6a6b5.firebaseapp.com",
   projectId: "event-timeline-6a6b5",
-  storageBucket: "event-timeline-6a6b5.firebasestorage.app",
+  storageBucket: "event-timeline-6a6b5.appspot.com",
   messagingSenderId: "253986913727",
   appId: "1:253986913727:web:14a667c11c37b5c226f50a"
 };
@@ -162,144 +152,114 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-let currentChapter = "europe";
-let expandedEvents = {};
+let mode = "compact";
 
-window.switchTab = function(e, chapter) {
-  currentChapter = chapter;
-  document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
-  e.target.classList.add("active");
-  loadEvents();
+window.setMode = function(selected) {
+  mode = selected;
+  document.getElementById("detailsSection").style.display =
+    mode === "detailed" ? "block" : "none";
 };
 
 window.addEvent = async function() {
-  const name = document.getElementById("eventName").value;
-  const year = document.getElementById("eventYear").value;
-  const color = document.getElementById("eventColor").value;
-  const description = document.getElementById("eventDescription").value;
-  const source = document.getElementById("eventSource").value;
+  const chapter = document.getElementById("chapter").value;
+  const year = parseInt(document.getElementById("year").value);
+  const title = document.getElementById("title").value;
+  const detailsRaw = document.getElementById("details").value;
 
-  if (!name || !year) return alert("Event name and year required");
+  if (!year || !title) return alert("Enter year and title");
 
-  await addDoc(collection(db, currentChapter), {
-    name,
-    year: Number(year),
-    color,
-    description: description || "",
-    source: source || ""
+  const details = detailsRaw
+    ? detailsRaw.split("\n").filter(line => line.trim() !== "")
+    : [];
+
+  await addDoc(collection(db, chapter), {
+    year,
+    title,
+    details
   });
 
+  alert("Event Added");
   loadEvents();
 };
-
-function formatDescription(text) {
-  if (!text) return "";
-  const lines = text.split("\n");
-  let html = "<ul>";
-  lines.forEach(line => {
-    if (line.trim() !== "") {
-      html += `<li>${line.replace(/^-\s*/, "")}</li>`;
-    }
-  });
-  html += "</ul>";
-  return html;
-}
 
 async function loadEvents() {
   const timeline = document.getElementById("timeline");
   timeline.innerHTML = "";
 
-  const querySnapshot = await getDocs(collection(db, currentChapter));
-  let events = [];
+  const chapters = ["india", "europe", "print"];
 
-  querySnapshot.forEach(docSnap => {
-    events.push({ id: docSnap.id, ...docSnap.data() });
-  });
+  for (let chapter of chapters) {
+    const snapshot = await getDocs(collection(db, chapter));
 
-  events.sort((a,b) => a.year - b.year);
+    snapshot.docs
+      .map(doc => doc.data())
+      .sort((a, b) => a.year - b.year)
+      .forEach(event => {
 
-  events.forEach(eventData => {
-    const div = document.createElement("div");
-    div.className = "event";
-    div.style.borderLeft = "6px solid " + (eventData.color || "#2563eb");
+        const box = document.createElement("div");
+        box.className = "event-box";
 
-    div.innerHTML = `
-      <h4>${eventData.name}</h4>
-      <div class="year">${eventData.year}</div>
-      <button onclick="toggleEvent('${eventData.id}')">
-        ${expandedEvents[eventData.id] ? "Hide Details" : "Show Details"}
-      </button>
-      ${expandedEvents[eventData.id] && eventData.description ? formatDescription(eventData.description) : ""}
-      ${expandedEvents[eventData.id] && eventData.source ? `<small>Source: ${eventData.source}</small>` : ""}
-      <div>
-        <button onclick="editEvent('${eventData.id}')">Edit</button>
-        <button class="delete" onclick="deleteEvent('${eventData.id}')">Delete</button>
-      </div>
-    `;
+        box.innerHTML = `
+          <div class="year">${event.year} - ${event.title}</div>
+          <button class="small-btn black-btn" onclick="toggleDetails(this)">Show Details</button>
+          <div class="details" style="display:none;">
+            ${
+              event.details && event.details.length
+              ? "<ul>" + event.details.map(d => `<li>${d}</li>`).join("") + "</ul>"
+              : "No details"
+            }
+          </div>
+        `;
 
-    timeline.appendChild(div);
-  });
+        timeline.appendChild(box);
+      });
+  }
 }
 
-window.toggleEvent = function(id) {
-  expandedEvents[id] = !expandedEvents[id];
-  loadEvents();
-};
-
-window.deleteEvent = async function(id) {
-  await deleteDoc(doc(db, currentChapter, id));
-  loadEvents();
-};
-
-window.editEvent = async function(id) {
-  const newName = prompt("New Event Name:");
-  const newYear = prompt("New Year:");
-  const newDescription = prompt("New Description:");
-  const newSource = prompt("New Source:");
-
-  if (!newName || !newYear) return;
-
-  await updateDoc(doc(db, currentChapter, id), {
-    name: newName,
-    year: Number(newYear),
-    description: newDescription || "",
-    source: newSource || ""
-  });
-
-  loadEvents();
+window.toggleDetails = function(button) {
+  const details = button.nextElementSibling;
+  if (details.style.display === "none") {
+    details.style.display = "block";
+    button.innerText = "Hide Details";
+  } else {
+    details.style.display = "none";
+    button.innerText = "Show Details";
+  }
 };
 
 window.generateSummary = async function() {
-  const from = Number(document.getElementById("fromYear").value);
-  const to = Number(document.getElementById("toYear").value);
+  const start = parseInt(document.getElementById("startYear").value);
+  const end = parseInt(document.getElementById("endYear").value);
 
-  if (!from || !to) return alert("Enter valid year range");
+  if (!start || !end) return alert("Enter both years");
 
-  const querySnapshot = await getDocs(collection(db, currentChapter));
-  let filtered = [];
+  const snapshot = await getDocs(collection(db, "india"));
+  let textData = "";
 
-  querySnapshot.forEach(docSnap => {
-    const data = docSnap.data();
-    if (data.year >= from && data.year <= to) {
-      filtered.push(data);
-    }
+  snapshot.docs
+    .map(doc => doc.data())
+    .filter(event => event.year >= start && event.year <= end)
+    .forEach(event => {
+      textData += `${event.year} - ${event.title}. `;
+      if (event.details) {
+        event.details.forEach(d => textData += d + ". ");
+      }
+    });
+
+  if (!textData) return alert("No events in this range");
+
+  const response = await fetch("/api/summary", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ text: textData })
   });
 
-  if (filtered.length === 0) {
-    document.getElementById("summaryBox").innerHTML =
-      "No events found in this range.";
-    return;
-  }
-
-  let summary = `<strong>Summary (${from} - ${to}):</strong><br><br>`;
-  filtered.forEach(event => {
-    summary += `• ${event.name} (${event.year})<br>`;
-  });
-
-  document.getElementById("summaryBox").innerHTML = summary;
+  const data = await response.json();
+  document.getElementById("summary").innerText = data.summary;
 };
 
 loadEvents();
+
 </script>
 
 </body>
