@@ -50,6 +50,16 @@ button {
   color: white;
 }
 
+.edit-btn {
+  background: #2563eb;
+  color: white;
+}
+
+.delete-btn {
+  background: #dc2626;
+  color: white;
+}
+
 .timeline {
   margin-top: 30px;
 }
@@ -121,15 +131,14 @@ button {
 
 <hr>
 
-<h3>Add Event</h3>
+<h3 id="formTitle">Add Event</h3>
 
 <input type="number" id="year" placeholder="Year">
 <input type="text" id="title" placeholder="Event Title">
 <input type="color" id="color" value="#000000">
-
 <textarea id="details" placeholder="Enter bullet points (one per line)"></textarea>
 
-<button onclick="addEvent()">Add Event</button>
+<button onclick="saveEvent()">Save Event</button>
 
 <hr>
 
@@ -147,7 +156,15 @@ button {
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  getDocs,
+  deleteDoc,
+  doc,
+  updateDoc
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "YOUR_API_KEY",
@@ -161,7 +178,9 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-window.addEvent = async function() {
+let editId = null;
+
+window.saveEvent = async function() {
   const chapter = document.getElementById("chapterSelector").value;
   const year = parseInt(document.getElementById("year").value);
   const title = document.getElementById("title").value;
@@ -174,26 +193,59 @@ window.addEvent = async function() {
     ? detailsRaw.split("\n").filter(line => line.trim() !== "")
     : [];
 
-  await addDoc(collection(db, chapter), {
-    year,
-    title,
-    details,
-    color
-  });
+  if (editId) {
+    await updateDoc(doc(db, chapter, editId), {
+      year,
+      title,
+      details,
+      color
+    });
+    editId = null;
+    document.getElementById("formTitle").innerText = "Add Event";
+  } else {
+    await addDoc(collection(db, chapter), {
+      year,
+      title,
+      details,
+      color
+    });
+  }
 
-  alert("Event Added");
+  clearForm();
   loadEvents();
 };
 
+window.editEvent = function(id, eventData) {
+  document.getElementById("year").value = eventData.year;
+  document.getElementById("title").value = eventData.title;
+  document.getElementById("color").value = eventData.color || "#000000";
+  document.getElementById("details").value =
+    eventData.details ? eventData.details.join("\n") : "";
+
+  editId = id;
+  document.getElementById("formTitle").innerText = "Edit Event";
+  window.scrollTo(0,0);
+};
+
+window.deleteEvent = async function(id) {
+  const chapter = document.getElementById("chapterSelector").value;
+  if (confirm("Delete this event?")) {
+    await deleteDoc(doc(db, chapter, id));
+    loadEvents();
+  }
+};
+
+function clearForm() {
+  document.getElementById("year").value = "";
+  document.getElementById("title").value = "";
+  document.getElementById("details").value = "";
+  document.getElementById("color").value = "#000000";
+}
+
 window.toggleDetails = function(button) {
   const details = button.nextElementSibling;
-  if (details.style.display === "none") {
-    details.style.display = "block";
-    button.innerText = "Hide Details";
-  } else {
-    details.style.display = "none";
-    button.innerText = "Show Details";
-  }
+  details.style.display =
+    details.style.display === "none" ? "block" : "none";
 };
 
 window.loadEvents = async function() {
@@ -204,9 +256,10 @@ window.loadEvents = async function() {
   const snapshot = await getDocs(collection(db, chapter));
 
   snapshot.docs
-    .map(doc => doc.data())
-    .sort((a,b) => a.year - b.year)
-    .forEach((event, index) => {
+    .sort((a,b) => a.data().year - b.data().year)
+    .forEach((docSnap, index) => {
+      const event = docSnap.data();
+      const id = docSnap.id;
 
       const wrapper = document.createElement("div");
       wrapper.className = "event-wrapper";
@@ -224,6 +277,8 @@ window.loadEvents = async function() {
           </div>
 
           <button class="black-btn" onclick="toggleDetails(this)">Show Details</button>
+          <button class="edit-btn">Edit</button>
+          <button class="delete-btn">Delete</button>
 
           <div class="details" style="display:none;">
             ${
@@ -234,6 +289,12 @@ window.loadEvents = async function() {
           </div>
         </div>
       `;
+
+      wrapper.querySelector(".edit-btn").onclick = () =>
+        editEvent(id, event);
+
+      wrapper.querySelector(".delete-btn").onclick = () =>
+        deleteEvent(id);
 
       timeline.appendChild(wrapper);
     });
