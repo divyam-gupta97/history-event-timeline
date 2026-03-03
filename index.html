@@ -77,10 +77,6 @@ button.delete {
   background: #dc2626;
 }
 
-button.secondary {
-  background: #6b7280;
-}
-
 .timeline {
   border-left: 4px solid #2563eb;
   padding-left: 20px;
@@ -99,8 +95,8 @@ button.secondary {
   color: #555;
 }
 
-small {
-  color: #666;
+ul {
+  margin-top: 5px;
 }
 
 #summaryBox {
@@ -129,18 +125,16 @@ small {
 <input type="text" id="eventName" placeholder="Event Name (required)">
 <input type="number" id="eventYear" placeholder="Year (required)">
 <input type="color" id="eventColor" value="#2563eb">
-<textarea id="eventDescription" placeholder="Detailed Description (optional)"></textarea>
+<textarea id="eventDescription" placeholder="Detailed Description (Use - for bullet points)"></textarea>
 <input type="text" id="eventSource" placeholder="Source (optional)">
 <button onclick="addEvent()">Add Event</button>
 </div>
 
 <div class="card">
-<h3>Controls</h3>
-<button class="secondary" onclick="toggleMode()">Toggle Compact / Detailed</button>
-<br><br>
+<h3>AI Summary Generator</h3>
 <input type="number" id="fromYear" placeholder="From Year">
 <input type="number" id="toYear" placeholder="To Year">
-<button onclick="generateSummary()">Generate AI Summary</button>
+<button onclick="generateSummary()">Generate Summary</button>
 <div id="summaryBox"></div>
 </div>
 
@@ -169,17 +163,12 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 let currentChapter = "europe";
-let detailedMode = false;
+let expandedEvents = {};
 
 window.switchTab = function(e, chapter) {
   currentChapter = chapter;
   document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
   e.target.classList.add("active");
-  loadEvents();
-};
-
-window.toggleMode = function() {
-  detailedMode = !detailedMode;
   loadEvents();
 };
 
@@ -200,13 +189,21 @@ window.addEvent = async function() {
     source: source || ""
   });
 
-  document.getElementById("eventName").value = "";
-  document.getElementById("eventYear").value = "";
-  document.getElementById("eventDescription").value = "";
-  document.getElementById("eventSource").value = "";
-
   loadEvents();
 };
+
+function formatDescription(text) {
+  if (!text) return "";
+  const lines = text.split("\n");
+  let html = "<ul>";
+  lines.forEach(line => {
+    if (line.trim() !== "") {
+      html += `<li>${line.replace(/^-\s*/, "")}</li>`;
+    }
+  });
+  html += "</ul>";
+  return html;
+}
 
 async function loadEvents() {
   const timeline = document.getElementById("timeline");
@@ -224,13 +221,16 @@ async function loadEvents() {
   events.forEach(eventData => {
     const div = document.createElement("div");
     div.className = "event";
-    div.style.borderLeft = "6px solid " + eventData.color;
+    div.style.borderLeft = "6px solid " + (eventData.color || "#2563eb");
 
     div.innerHTML = `
       <h4>${eventData.name}</h4>
       <div class="year">${eventData.year}</div>
-      ${detailedMode && eventData.description ? `<p>${eventData.description}</p>` : ""}
-      ${detailedMode && eventData.source ? `<small>Source: ${eventData.source}</small>` : ""}
+      <button onclick="toggleEvent('${eventData.id}')">
+        ${expandedEvents[eventData.id] ? "Hide Details" : "Show Details"}
+      </button>
+      ${expandedEvents[eventData.id] && eventData.description ? formatDescription(eventData.description) : ""}
+      ${expandedEvents[eventData.id] && eventData.source ? `<small>Source: ${eventData.source}</small>` : ""}
       <div>
         <button onclick="editEvent('${eventData.id}')">Edit</button>
         <button class="delete" onclick="deleteEvent('${eventData.id}')">Delete</button>
@@ -240,6 +240,11 @@ async function loadEvents() {
     timeline.appendChild(div);
   });
 }
+
+window.toggleEvent = function(id) {
+  expandedEvents[id] = !expandedEvents[id];
+  loadEvents();
+};
 
 window.deleteEvent = async function(id) {
   await deleteDoc(doc(db, currentChapter, id));
@@ -251,7 +256,6 @@ window.editEvent = async function(id) {
   const newYear = prompt("New Year:");
   const newDescription = prompt("New Description:");
   const newSource = prompt("New Source:");
-  const newColor = prompt("New Color (hex like #ff0000):");
 
   if (!newName || !newYear) return;
 
@@ -259,8 +263,7 @@ window.editEvent = async function(id) {
     name: newName,
     year: Number(newYear),
     description: newDescription || "",
-    source: newSource || "",
-    color: newColor || "#2563eb"
+    source: newSource || ""
   });
 
   loadEvents();
@@ -277,24 +280,21 @@ window.generateSummary = async function() {
 
   querySnapshot.forEach(docSnap => {
     const data = docSnap.data();
-    if (data.year >= from && data.year <= to && data.description) {
+    if (data.year >= from && data.year <= to) {
       filtered.push(data);
     }
   });
 
   if (filtered.length === 0) {
     document.getElementById("summaryBox").innerHTML =
-      "No detailed events found in this range.";
+      "No events found in this range.";
     return;
   }
 
-  let summary = `Between ${from} and ${to}, key developments included: `;
-
+  let summary = `<strong>Summary (${from} - ${to}):</strong><br><br>`;
   filtered.forEach(event => {
-    summary += `${event.name} (${event.year}), `;
+    summary += `• ${event.name} (${event.year})<br>`;
   });
-
-  summary += "These events collectively influenced the historical trajectory of this period.";
 
   document.getElementById("summaryBox").innerHTML = summary;
 };
