@@ -1,136 +1,159 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
-  <title>History Timeline</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<title>History Event Timeline</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      background: #f4f6f9;
-    }
+<style>
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  background: #f3f4f6;
+}
 
-    header {
-      background: #111827;
-      color: white;
-      padding: 20px;
-      text-align: center;
-      font-size: 22px;
-      font-weight: bold;
-    }
+header {
+  background: #111827;
+  color: white;
+  padding: 20px;
+  text-align: center;
+  font-size: 22px;
+  font-weight: bold;
+}
 
-    .container {
-      max-width: 1000px;
-      margin: 30px auto;
-      padding: 20px;
-    }
+.container {
+  max-width: 1000px;
+  margin: 30px auto;
+  padding: 20px;
+}
 
-    .tabs {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 20px;
-    }
+.tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
 
-    .tab {
-      padding: 10px 20px;
-      background: #e5e7eb;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: bold;
-    }
+.tab {
+  padding: 10px 20px;
+  background: #e5e7eb;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+}
 
-    .tab.active {
-      background: #2563eb;
-      color: white;
-    }
+.tab.active {
+  background: #2563eb;
+  color: white;
+}
 
-    .card {
-      background: white;
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-      margin-bottom: 20px;
-    }
+.card {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  margin-bottom: 20px;
+}
 
-    input, button {
-      padding: 8px;
-      margin: 5px 0;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-    }
+input, textarea, button {
+  padding: 8px;
+  margin: 5px 0;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  width: 100%;
+}
 
-    button {
-      background: #2563eb;
-      color: white;
-      cursor: pointer;
-      border: none;
-    }
+textarea {
+  resize: vertical;
+}
 
-    button.delete {
-      background: #dc2626;
-    }
+button {
+  background: #2563eb;
+  color: white;
+  cursor: pointer;
+  border: none;
+}
 
-    .timeline {
-      border-left: 4px solid #2563eb;
-      padding-left: 20px;
-      margin-top: 20px;
-    }
+button.delete {
+  background: #dc2626;
+}
 
-    .event {
-      margin-bottom: 15px;
-      padding: 10px;
-      background: #f9fafb;
-      border-radius: 8px;
-      position: relative;
-    }
+button.secondary {
+  background: #6b7280;
+}
 
-    .event h4 {
-      margin: 0;
-    }
+.timeline {
+  border-left: 4px solid #2563eb;
+  padding-left: 20px;
+  margin-top: 20px;
+}
 
-    .year {
-      font-weight: bold;
-      color: #555;
-    }
+.event {
+  margin-bottom: 15px;
+  padding: 12px;
+  background: #f9fafb;
+  border-radius: 8px;
+}
 
-    .actions {
-      margin-top: 5px;
-    }
-  </style>
+.year {
+  font-weight: bold;
+  color: #555;
+}
+
+small {
+  color: #666;
+}
+
+#summaryBox {
+  background: #eef2ff;
+  padding: 15px;
+  border-radius: 8px;
+  margin-top: 10px;
+}
+</style>
 </head>
 
 <body>
 
-<header>History Timeline</header>
+<header>History Event Timeline</header>
 
 <div class="container">
 
-  <div class="tabs">
-    <div class="tab active" onclick="switchTab('europe')">Europe</div>
-    <div class="tab" onclick="switchTab('india')">India</div>
-    <div class="tab" onclick="switchTab('print')">Print</div>
-  </div>
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(event,'europe')">Europe</div>
+  <div class="tab" onclick="switchTab(event,'india')">India</div>
+  <div class="tab" onclick="switchTab(event,'print')">Print</div>
+</div>
 
-  <div class="card">
-    <h3>Add Event</h3>
-    <input type="text" id="eventName" placeholder="Event Name"><br>
-    <input type="number" id="eventYear" placeholder="Year"><br>
-    <input type="color" id="eventColor" value="#2563eb"><br>
-    <button onclick="addEvent()">Add Event</button>
-  </div>
+<div class="card">
+<h3>Add Event</h3>
+<input type="text" id="eventName" placeholder="Event Name (required)">
+<input type="number" id="eventYear" placeholder="Year (required)">
+<input type="color" id="eventColor" value="#2563eb">
+<textarea id="eventDescription" placeholder="Detailed Description (optional)"></textarea>
+<input type="text" id="eventSource" placeholder="Source (optional)">
+<button onclick="addEvent()">Add Event</button>
+</div>
 
-  <div class="card">
-    <h3>Timeline</h3>
-    <div id="timeline" class="timeline"></div>
-  </div>
+<div class="card">
+<h3>Controls</h3>
+<button class="secondary" onclick="toggleMode()">Toggle Compact / Detailed</button>
+<br><br>
+<input type="number" id="fromYear" placeholder="From Year">
+<input type="number" id="toYear" placeholder="To Year">
+<button onclick="generateSummary()">Generate AI Summary</button>
+<div id="summaryBox"></div>
+</div>
+
+<div class="card">
+<h3>Timeline</h3>
+<div id="timeline" class="timeline"></div>
+</div>
 
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc } 
+import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc }
 from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -146,41 +169,53 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 let currentChapter = "europe";
+let detailedMode = false;
 
-window.switchTab = function(chapter) {
+window.switchTab = function(e, chapter) {
   currentChapter = chapter;
-  document.querySelectorAll(".tab").forEach(tab => tab.classList.remove("active"));
-  event.target.classList.add("active");
+  document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+  e.target.classList.add("active");
   loadEvents();
-}
+};
+
+window.toggleMode = function() {
+  detailedMode = !detailedMode;
+  loadEvents();
+};
 
 window.addEvent = async function() {
   const name = document.getElementById("eventName").value;
   const year = document.getElementById("eventYear").value;
   const color = document.getElementById("eventColor").value;
+  const description = document.getElementById("eventDescription").value;
+  const source = document.getElementById("eventSource").value;
 
-  if (!name || !year) return alert("Fill all fields");
+  if (!name || !year) return alert("Event name and year required");
 
   await addDoc(collection(db, currentChapter), {
-    name: name,
+    name,
     year: Number(year),
-    color: color
+    color,
+    description: description || "",
+    source: source || ""
   });
 
   document.getElementById("eventName").value = "";
   document.getElementById("eventYear").value = "";
+  document.getElementById("eventDescription").value = "";
+  document.getElementById("eventSource").value = "";
 
   loadEvents();
-}
+};
 
 async function loadEvents() {
   const timeline = document.getElementById("timeline");
   timeline.innerHTML = "";
 
   const querySnapshot = await getDocs(collection(db, currentChapter));
-
   let events = [];
-  querySnapshot.forEach((docSnap) => {
+
+  querySnapshot.forEach(docSnap => {
     events.push({ id: docSnap.id, ...docSnap.data() });
   });
 
@@ -194,7 +229,9 @@ async function loadEvents() {
     div.innerHTML = `
       <h4>${eventData.name}</h4>
       <div class="year">${eventData.year}</div>
-      <div class="actions">
+      ${detailedMode && eventData.description ? `<p>${eventData.description}</p>` : ""}
+      ${detailedMode && eventData.source ? `<small>Source: ${eventData.source}</small>` : ""}
+      <div>
         <button onclick="editEvent('${eventData.id}')">Edit</button>
         <button class="delete" onclick="deleteEvent('${eventData.id}')">Delete</button>
       </div>
@@ -207,23 +244,60 @@ async function loadEvents() {
 window.deleteEvent = async function(id) {
   await deleteDoc(doc(db, currentChapter, id));
   loadEvents();
-}
+};
 
 window.editEvent = async function(id) {
   const newName = prompt("New Event Name:");
   const newYear = prompt("New Year:");
-  const newColor = prompt("New Color (hex code like #ff0000):");
+  const newDescription = prompt("New Description:");
+  const newSource = prompt("New Source:");
+  const newColor = prompt("New Color (hex like #ff0000):");
 
-  if (!newName || !newYear || !newColor) return;
+  if (!newName || !newYear) return;
 
   await updateDoc(doc(db, currentChapter, id), {
     name: newName,
     year: Number(newYear),
-    color: newColor
+    description: newDescription || "",
+    source: newSource || "",
+    color: newColor || "#2563eb"
   });
 
   loadEvents();
-}
+};
+
+window.generateSummary = async function() {
+  const from = Number(document.getElementById("fromYear").value);
+  const to = Number(document.getElementById("toYear").value);
+
+  if (!from || !to) return alert("Enter valid year range");
+
+  const querySnapshot = await getDocs(collection(db, currentChapter));
+  let filtered = [];
+
+  querySnapshot.forEach(docSnap => {
+    const data = docSnap.data();
+    if (data.year >= from && data.year <= to && data.description) {
+      filtered.push(data);
+    }
+  });
+
+  if (filtered.length === 0) {
+    document.getElementById("summaryBox").innerHTML =
+      "No detailed events found in this range.";
+    return;
+  }
+
+  let summary = `Between ${from} and ${to}, key developments included: `;
+
+  filtered.forEach(event => {
+    summary += `${event.name} (${event.year}), `;
+  });
+
+  summary += "These events collectively influenced the historical trajectory of this period.";
+
+  document.getElementById("summaryBox").innerHTML = summary;
+};
 
 loadEvents();
 </script>
