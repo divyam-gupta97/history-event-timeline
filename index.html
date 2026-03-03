@@ -17,7 +17,6 @@ header {
   padding: 18px;
   text-align: center;
   font-size: 22px;
-  letter-spacing: 1px;
 }
 
 .container {
@@ -52,32 +51,34 @@ button {
 }
 
 .timeline {
-  border-left: 5px solid #444;
-  padding-left: 25px;
   margin-top: 30px;
+}
+
+.event-wrapper {
+  position: relative;
+  margin-bottom: 25px;
+  padding-left: 40px;
+}
+
+.event-line {
+  position: absolute;
+  left: 15px;
+  top: 0;
+  width: 6px;
+  height: 100%;
+  border-radius: 3px;
 }
 
 .event-box {
   background: white;
   padding: 14px;
-  margin-bottom: 15px;
   border-radius: 10px;
   box-shadow: 0 3px 10px rgba(0,0,0,0.08);
-  position: relative;
-}
-
-.event-dot {
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  position: absolute;
-  left: -32px;
-  top: 22px;
 }
 
 .event-index {
   display: inline-block;
-  padding: 3px 8px;
+  padding: 4px 10px;
   border-radius: 20px;
   font-size: 11px;
   font-weight: bold;
@@ -85,7 +86,7 @@ button {
   margin-bottom: 6px;
 }
 
-.year {
+.year-title {
   font-weight: bold;
   font-size: 17px;
 }
@@ -93,11 +94,6 @@ button {
 .details {
   margin-top: 10px;
   padding-left: 18px;
-}
-
-.mode-toggle {
-  float: right;
-  font-size: 12px;
 }
 
 .summary-box {
@@ -112,14 +108,7 @@ button {
 
 <body>
 
-<header>
-  History Event Timeline
-  <span class="mode-toggle">
-    Mode:
-    <button onclick="setMode('compact')">Compact</button>
-    <button onclick="setMode('detailed')">Detailed</button>
-  </span>
-</header>
+<header>History Event Timeline</header>
 
 <div class="container">
 
@@ -138,9 +127,7 @@ button {
 <input type="text" id="title" placeholder="Event Title">
 <input type="color" id="color" value="#000000">
 
-<div id="detailsSection" style="display:none;">
-  <textarea id="details" placeholder="Enter bullet points (one per line)"></textarea>
-</div>
+<textarea id="details" placeholder="Enter bullet points (one per line)"></textarea>
 
 <button onclick="addEvent()">Add Event</button>
 
@@ -173,14 +160,6 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-
-let mode = "compact";
-
-window.setMode = function(selected) {
-  mode = selected;
-  document.getElementById("detailsSection").style.display =
-    mode === "detailed" ? "block" : "none";
-};
 
 window.addEvent = async function() {
   const chapter = document.getElementById("chapterSelector").value;
@@ -229,26 +208,34 @@ window.loadEvents = async function() {
     .sort((a,b) => a.year - b.year)
     .forEach((event, index) => {
 
-      const box = document.createElement("div");
-      box.className = "event-box";
+      const wrapper = document.createElement("div");
+      wrapper.className = "event-wrapper";
 
-      box.innerHTML = `
-        <div class="event-dot" style="background:${event.color || "#000"}"></div>
-        <div class="event-index" style="background:${event.color || "#000"}">
-          Event ${index + 1}
-        </div>
-        <div class="year">${event.year} - ${event.title}</div>
-        <button class="black-btn" onclick="toggleDetails(this)">Show Details</button>
-        <div class="details" style="display:none;">
-          ${
-            event.details && event.details.length
-            ? "<ul>" + event.details.map(d => `<li>${d}</li>`).join("") + "</ul>"
-            : "No details"
-          }
+      wrapper.innerHTML = `
+        <div class="event-line" style="background:${event.color || "#000"}"></div>
+
+        <div class="event-box">
+          <div class="event-index" style="background:${event.color || "#000"}">
+            Event ${index + 1}
+          </div>
+
+          <div class="year-title">
+            ${event.year} — ${event.title}
+          </div>
+
+          <button class="black-btn" onclick="toggleDetails(this)">Show Details</button>
+
+          <div class="details" style="display:none;">
+            ${
+              event.details && event.details.length
+              ? "<ul>" + event.details.map(d => `<li>${d}</li>`).join("") + "</ul>"
+              : "No details"
+            }
+          </div>
         </div>
       `;
 
-      timeline.appendChild(box);
+      timeline.appendChild(wrapper);
     });
 };
 
